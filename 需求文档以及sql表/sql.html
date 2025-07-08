@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>东软医疗保险系统 - 数据库表属性查看器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: flex;
+            height: calc(100vh - 200px);
+        }
+
+        .sidebar {
+            width: 350px;
+            background: #f8f9fa;
+            border-right: 1px solid #e9ecef;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .sidebar h3 {
+            margin-bottom: 20px;
+            color: #2c3e50;
+            font-size: 1.3rem;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+
+        .table-category {
+            margin-bottom: 25px;
+        }
+
+        .category-title {
+            background: #3498db;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+        }
+
+        .table-list {
+            list-style: none;
+        }
+
+        .table-item {
+            padding: 12px 15px;
+            margin: 5px 0;
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .table-item:hover {
+            background: #e3f2fd;
+            border-color: #2196f3;
+            transform: translateX(5px);
+        }
+
+        .table-item.active {
+            background: #2196f3;
+            color: white;
+            border-color: #2196f3;
+        }
+
+        .table-name {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .table-comment {
+            font-size: 0.85rem;
+            opacity: 0.7;
+        }
+
+        .content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .table-details {
+            display: none;
+        }
+
+        .table-details.active {
+            display: block;
+        }
+
+        .details-header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .details-title {
+            font-size: 1.8rem;
+            margin-bottom: 8px;
+        }
+
+        .details-subtitle {
+            opacity: 0.9;
+            font-size: 1rem;
+        }
+
+        .fields-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .fields-table th {
+            background: #34495e;
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .fields-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #f1f1f1;
+        }
+
+        .fields-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .field-type {
+            background: #e74c3c;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .field-type.varchar { background: #3498db; }
+        .field-type.int { background: #e67e22; }
+        .field-type.bigint { background: #e67e22; }
+        .field-type.decimal { background: #f39c12; }
+        .field-type.datetime { background: #9b59b6; }
+        .field-type.date { background: #9b59b6; }
+        .field-type.text { background: #27ae60; }
+        .field-type.tinyint { background: #e74c3c; }
+        .field-type.enum { background: #8e44ad; }
+
+        .key-indicator {
+            background: #f39c12;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 0.7rem;
+            margin-left: 5px;
+        }
+
+        .key-indicator.primary { background: #e74c3c; }
+        .key-indicator.unique { background: #9b59b6; }
+        .key-indicator.foreign { background: #27ae60; }
+
+        .placeholder {
+            text-align: center;
+            padding: 60px 20px;
+            color: #7f8c8d;
+        }
+
+        .placeholder-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+
+        .stats-bar {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .stat-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            text-align: center;
+            flex: 1;
+        }
+
+        .stat-number {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #7f8c8d;
+            margin-top: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+                height: auto;
+            }
+
+            .sidebar {
+                width: 100%;
+                max-height: 300px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>📊 数据库表属性查看器</h1>
+        <p>东软医疗保险报销系统数据库设计文档</p>
+    </div>
+
+    <div class="main-content">
+        <div class="sidebar">
+            <h3>数据库表列表</h3>
+
+            <div class="table-category">
+                <div class="category-title">🔐 系统管理表</div>
+                <ul class="table-list">
+                    <li class="table-item" data-table="sys_user">
+                        <div class="table-name">sys_user</div>
+                        <div class="table-comment">用户表</div>
+                    </li>
+                    <li class="table-item" data-table="sys_role">
+                        <div class="table-name">sys_role</div>
+                        <div class="table-comment">角色表</div>
+                    </li>
+                    <li class="table-item" data-table="sys_permission">
+                        <div class="table-name">sys_permission</div>
+                        <div class="table-comment">权限表</div>
+                    </li>
+                    <li class="table-item" data-table="sys_user_role">
+                        <div class="table-name">sys_user_role</div>
+                        <div class="table-comment">用户角色关联表</div>
+                    </li>
+                    <li class="table-item" data-table="sys_role_permission">
+                        <div class="table-name">sys_role_permission</div>
+                        <div class="table-comment">角色权限关联表</div>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="table-category">
+                <div class="category-title">📋 基础数据表</div>
+                <ul class="table-list">
+                    <li class="table-item" data-table="diseases">
+                        <div class="table-name">diseases</div>
+                        <div class="table-comment">疾病信息表</div>
+                    </li>
+                    <li class="table-item" data-table="drugs">
+                        <div class="table-name">drugs</div>
+                        <div class="table-comment">药品信息表</div>
+                    </li>
+                    <li class="table-item" data-table="treatments">
+                        <div class="table-name">treatments</div>
+                        <div class="table-comment">诊疗项目表</div>
+                    </li>
+                    <li class="table-item" data-table="medical_facilities">
+                        <div class="table-name">medical_facilities</div>
+                        <div class="table-comment">医疗服务设施表</div>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="table-category">
+                <div class="category-title">💰 报销比例表</div>
+                <ul class="table-list">
+                    <li class="table-item" data-table="drug_reimbursement_ratios">
+                        <div class="table-name">drug_reimbursement_ratios</div>
+                        <div class="table-comment">药品报销比例表</div>
+                    </li>
+                    <li class="table-item" data-table="level3_hospital_ratios">
+                        <div class="table-name">level3_hospital_ratios</div>
+                        <div class="table-comment">三级医院报销比例表</div>
+                    </li>
+                    <li class="table-item" data-table="level2_hospital_ratios">
+                        <div class="table-name">level2_hospital_ratios</div>
+                        <div class="table-comment">二级医院报销比例表</div>
+                    </li>
+                    <li class="table-item" data-table="level1_hospital_ratios">
+                        <div class="table-name">level1_hospital_ratios</div>
+                        <div class="table-comment">一级医院报销比例表</div>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="table-category">
+                <div class="category-title">🏥 业务数据表</div>
+                <ul class="table-list">
+                    <li class="table-item" data-table="patients">
+                        <div class="table-name">patients</div>
+                        <div class="table-comment">患者信息表</div>
+                    </li>
+                    <li class="table-item" data-table="insured_persons">
+                        <div class="table-name">insured_persons</div>
+                        <div class="table-comment">参保人员表</div>
+                    </li>
+                    <li class="table-item" data-table="patient_diagnoses">
+                        <div class="table-name">patient_diagnoses</div>
+                        <div class="table-comment">患者疾病诊断表</div>
+                    </li>
+                    <li class="table-item" data-table="patient_prescriptions">
+                        <div class="table-name">patient_prescriptions</div>
+                        <div class="table-comment">患者药品处方表</div>
+                    </li>
+                    <li class="table-item" data-table="patient_treatments">
+                        <div class="table-name">patient_treatments</div>
+                        <div class="table-comment">患者诊疗项目表</div>
+                    </li>
+                    <li class="table-item" data-table="patient_medical_services">
+                        <div class="table-name">patient_medical_services</div>
+                        <div class="table-comment">患者医疗服务表</div>
+                    </li>
+                    <li class="table-item" data-table="reimbursement_records">
+                        <div class="table-name">reimbursement_records</div>
+                        <div class="table-comment">费用报销记录表</div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="placeholder">
+                <div class="placeholder-icon">🗃️</div>
+                <h3>选择一个表格查看详细信息</h3>
+                <p>点击左侧表格名称来查看字段属性和描述</p>
+            </div>
+
+            <!-- 表格详情模板 -->
+            <div id="table-details-template" class="table-details">
+                <div class="details-header">
+                    <div class="details-title" id="table-title"></div>
+                    <div class="details-subtitle" id="table-subtitle"></div>
+                </div>
+
+                <div class="stats-bar">
+                    <div class="stat-item">
+                        <div class="stat-number" id="field-count">0</div>
+                        <div class="stat-label">字段数量</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="index-count">0</div>
+                        <div class="stat-label">索引数量</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="key-count">0</div>
+                        <div class="stat-label">约束数量</div>
+                    </div>
+                </div>
+
+                <table class="fields-table">
+                    <thead>
+                    <tr>
+                        <th style="width: 20%">字段名</th>
+                        <th style="width: 15%">数据类型</th>
+                        <th style="width: 10%">约束</th>
+                        <th style="width: 15%">默认值</th>
+                        <th style="width: 40%">描述</th>
+                    </tr>
+                    </thead>
+                    <tbody id="fields-body">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 数据库表字段定义
+    const tableDefinitions = {
+        sys_user: {
+            title: 'sys_user',
+            subtitle: '用户表 - 存储系统用户信息',
+            fields: [
+                { name: 'id', type: 'BIGINT', constraint: 'PRIMARY KEY', default: 'AUTO_INCREMENT', comment: '用户ID' },
+                { name: 'username', type: 'VARCHAR(50)', constraint: 'NOT NULL UNIQUE', default: '', comment: '用户名' },
+                { name: 'password', type: 'VARCHAR(255)', constraint: 'NOT NULL', default: '', comment: '密码' },
+                { name: 'real_name', type: 'VARCHAR(50)', constraint: 'NOT NULL', default: '', comment: '真实姓名' },
+                { name: 'email', type: 'VARCHAR(100)', constraint: '', default: '', comment: '邮箱' },
+                { name: 'phone', type: 'VARCHAR(20)', constraint: '', default: '', comment: '手机号' },
+                { name: 'status', type: 'TINYINT', constraint: '', default: '1', comment: '状态(0=禁用,1=启用)' },
+                { name: 'create_time', type: 'DATETIME', constraint: '', default: 'CURRENT_TIMESTAMP', comment: '创建时间' },
+                { name: 'update_time', type: 'DATETIME', constraint: '', default: 'CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP', comment: '更新时间' }
+            ]
+        },
+        sys_role: {
+            title: 'sys_role',
+            subtitle: '角色表 - 定义系统角色',
+            fields: [
+                { name: 'id', type: 'BIGINT', constraint: 'PRIMARY KEY', default: 'AUTO_INCREMENT', comment: '角色ID' },
+                { name: 'role_name', type: 'VARCHAR(50)', constraint: 'NOT NULL', default: '', comment: '角色名称' },
+                { name: 'role_code', type: 'VARCHAR(50)', constraint: 'NOT NULL UNIQUE', default: '', comment: '角色编码' },
+                { name: 'description', type: 'VARCHAR(200)', constraint: '', default: '', comment: '角色描述' },
+                { name: 'status', type: 'TINYINT', constraint: '', default: '1', comment: '状态(0=禁用,1=启用)' },
+                { name: 'create_time', type: 'DATETIME', constraint: '', default: 'CURRENT_TIMESTAMP', comment: '创建时间' },
+                { name: 'update_time', type: 'DATETIME', constraint: '', default: 'CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP', comment: '更新时间' }
+            ]
+        },
+        sys_permission: {
+            title: 'sys_permission',
+            subtitle: '权限表 - 系统功能权限定义',
+            fields: [
+                { name: 'id', type: 'BIGINT', constraint: 'PRIMARY KEY', default: 'AUTO_INCREMENT', comment: '权限ID' },
+                { name: 'permission_name', type: 'VARCHAR(50)', constraint: 'NOT NULL', default: '', comment: '权限名称' },
+                { name: 'permission_code', type: 'VARCHAR(100)', constraint: 'NOT NULL UNIQUE', default: '', comment: '权限编码' },
+                { name: 'permission_type', type: 'TINYINT', constraint: 'NOT NULL', default: '', comment: '权限类型(1=菜单,2=按钮)' },
+                { name: 'parent_id', type: 'BIGINT', constraint: '', default: '0', comment: '父权限ID' },
+                { name: 'path', type: 'VARCHAR(200)', constraint: '', default: '', comment: '路径' },
+                { name: 'icon', type: 'VARCHAR(50)', constraint: '', default: '', comment: '图标' },
+                { name: 'sort_order', type: 'INT', constraint: '', default: '0', comment: '排序' },
+                { name: 'status', type: 'TINYINT', constraint: '', default: '1', comment: '状态(0=禁用,1=启用)' },
+                { name: 'create_time', type: 'DATETIME', constraint: '', default: 'CURRENT_TIMESTAMP', comment: '创建时间' },
+                { name: 'update_time', type: 'DATETIME', constraint: '', default: 'CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP', comment: '更新时间' }
+            ]
+        },
+        diseases: {
+            title: 'diseases',
+            subtitle: '疾病信息表 - 基于国际疾病分类标准ICD10 (29,395条记录)',
+            fields: [
+                { name: 'id', type: 'BIGINT', constraint: 'PRIMARY KEY', default: 'AUTO_INCREMENT', comment: '疾病ID' },
+                { name: 'icd_code', type: 'VARCHAR(20)', constraint: 'NOT NULL UNIQUE', default: '', comment: '国际ICD编码' },
+                { name: 'disease_code', type: 'VARCHAR(50)', constraint: 'NOT NULL UNIQUE', default: '', comment: '疾病编码' },
+                { name: 'disease_name', type: 'VARCHAR(200)', constraint: 'NOT NULL', default: '', comment: '疾病名称' },
+                { name: 'disease_category', type: 'VARCHAR(100)', constraint: '', default: '', comment: '疾病分类' },
+                { name: 'status', type: 'TINYINT', constraint: '', default: '1', comment: '状态(0=禁用,1=启用)' },
+                { name: 'create_time', type: 'DATETIME', constraint: '', default: 'CURRENT_TIMESTAMP', comment: '创建时间' },
+                { name: 'update_time', type: 'DATETIME', constraint: '', default: 'CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP', comment: '更新时间' }
+            ]
+        },
+        drugs: {
+            title: 'drugs',
+            subtitle: '药品信息表 - 基于医保药品目录 (12,376条记录)',
+            fields: [
+                { name: 'id', type: 'BIGINT', constraint: 'PRIMARY KEY', default: 'AUTO_INCREMENT', comment: '药品ID' },
+                { name: 'drug_name', type: 'VARCHAR(200)', constraint: 'NOT NULL', default: '', comment: '医保中文名称' },
+                { name: 'brand_name', type: 'VARCHAR(200)', constraint: '', default: '', comment: '商品名' },
+                { name: 'specification', type: 'VARCHAR(500)', constraint: '', default: '', comment: '规格' },
+                { name: 'unit', type: 'VARCHAR(20)', constraint: '', default: '', comment: '单位' },
+                { name: 'manufacturer', type: 'VARCHAR(500)', constraint: '', default: '', comment: '生产企业' },
+                { name: 'drug_category', type: 'ENUM', constraint: 'NOT NULL', default: '', comment: '药品分类(甲类/乙类/丙类)' },
+                { name: 'price', type: 'DECIMAL(10,2)', constraint: 'NOT NULL', default: '', comment: '支付标准(价格)' },
+                { name: 'remarks', type: 'TEXT', constraint: '', default: '', comment: '备注' },
+                { name: 'status', type: 'TINYINT', constraint: '', default: '1', comment: '状态(0=禁用,1=启用)' },
+                { name: 'create_time', type: 'DATETIME', constraint: '', default: 'CURRENT_TIMESTAMP', comment: '创建时间' },
+                { name: 'update_time', type: 'DATETIME', constraint: '', default: 'CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP', comment: '更新时间' }
+            ]
+        },
+        treatments: {
+            title: 'treatments',
+            subtitle: '诊疗项目表 - 基于诊疗项目目录 (14,642条记录)',
+            fields: [
+                { name: 'id', type: 'BIGINT', constraint: 'PRIMARY KEY', default: 'AUTO_INCREMENT', comment: '诊疗项目ID' },
+                { name: 'financial_category', type: 'VARCHAR(10)', constraint: '', default: '', comment: '财务分类' },
+                { name: 'project_code', type: 'VARCHAR(50)', constraint: 'NOT NULL UNIQUE', default: '', comment: '项目编码' },
+                { name: 'national_code', type: 'VARCHAR(100)', constraint: '', default: '', comment: '国家编码' },
+                { name: 'project_name', type: 'VARCHAR(200)', constraint: 'NOT NULL', default: '', comment: '项目名称' },
+                { name: 'unit', type: 'VARCHAR(20)', constraint: 'NOT NULL', default: '', comment: '计价单位' },
+                { name: 'price', type: 'DECIMAL(10,2)', constraint: 'NOT NULL', default: '', comment: '价格' },
+                { name: 'status', type: 'TINYINT', constraint: '', default: '1', comment: '状态(0=禁用,1=启用)' },
+                { name: 'create_time', type: 'DATETIME', constraint: '', default: 'CURRENT_TIMESTAMP', comment: '创建时间' },
+                { name: 'update_time', type: 'DATETIME', constraint: '', default: 'CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP', comment: '更新时间' }
+            ]
+        },
+        medical_facilities: {
+            title: 'medical_facilities',
+            subtitle: '医疗服务设施表 - 基于医疗服务项目目录 (295条记录)',
+            fields: [
+                { name: 'id', type: 'BIGINT', constraint: 'PRIMARY KEY', default: 'AUTO_INCREMENT', comment: '医疗服务设施ID' },
+                { name: 'financial_category', type: 'VARCHAR(10)', constraint: '', default: '', comment: '财务分类' },
+                { name: 'project_code', type: 'VARCHAR(50)', constraint: 'NOT NULL UNIQUE', default: '', comment: '项目编码' },
+                { name: 'national_code', type: 'VARCHAR(100)', constraint: '', default: '', comment: '国家编码' },
+                { name: 'project_name', type: 'VARCHAR(200)', constraint: 'NOT NULL', default: '', comment: '项目名称' },
+                { name: 'project_content', type: 'TEXT', constraint: '', default: '', comment: '项目内涵' },
+                { name: 'unit', type: 'VARCHAR(20)', constraint: 'NOT NULL', default: '', comment: '计价单位' },
+                { name: 'price', type: 'DECIMAL(10,2)', constraint: 'NOT NULL', default: '', comment: '价格' },
+                { name: 'status', type: 'TINYINT', constraint: '', default: '1', comment: '状态(0=禁用,1=启用)' },
+                { name: 'create_time', type: 'DATETIME', constraint: '', default: 'CURRENT_TIMESTAMP', comment: '创建时间' },
+                { name: 'update_time', type: 'DATETIME', constraint: '', default: 'CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP', comment: '更新时间' }
+            ]
+        },
+        drug_reimbursement_ratios: {
+            title: 'drug_reimbursement_ratios',
+            subtitle: '药品报销比例表 - 甲乙丙类药品报销比例配置',
+            fields: [
+                { name: 'id', type: 'BIGINT', constraint: 'PRIMARY KEY', default: 'AUTO_INCREMENT', comment: 'ID' },
+                { name: 'drug_category', type: 'ENUM', constraint: 'NOT NULL', default: '', comment: '药品类型(甲类/乙类/丙类)' },
+                { name: 'employee_type', type: 'ENUM', constraint: 'NOT NULL', default: '', comment: '人员类型(在职/退休)' },
+                { name: 'reimbursement_ratio', type: 'DECIMAL(5,4)', constraint: 'NOT NULL', default: '', comment: '报销比例(0-1)' },
+                { name: 'remarks', type: 'VARCHAR(500)', constraint: '', default: '', comment: '备注' },
+                { name: 'status', type: 'TINYINT', constraint: '', default: '1', comment: '状态(0=禁用,1=启用)' },
+                { name: 'create_time', type: 'DATETIME', constraint: '', default: 'CURRENT_TIMESTAMP', comment: '创建时间' },
+                { name: 'update_time', type: 'DATETIME', constraint: '', default: 'CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP', comment: '更新时间' }
+            ]
+        },
+        level3_hospital_ratios: {
+            title: 'level3_hospital_ratios',
+            subtitle: '三级医院报销比例表 - 分段报销比例配置',
+            fields: [
+                { name: 'id', type: 'BIGINT', constraint: 'PRIMARY KEY', default: 'AUTO_INCREMENT', comment: 'ID' },
+                { name: 'employee_type', type: 'ENUM', constraint: 'NOT NULL', default: '', comment: '人员类型(在职/退休)' },
+                { name: 'min_amount', type: 'DECIMAL(10,2)', constraint: 'NOT NULL', default: '', comment: '费用区间最小值' },
+                { name: 'max_amount', type: 'DECIMAL(10,2)', constraint: '', default: 'NULL', comment: '费用区间最大值(NULL表示无上限)' },
+                { name: 'reimbursement_ratio', type: 'DECIMAL(5,4)', constraint: 'NOT NULL', default: '', comment: '报销比例(0-1)' },
+                { name: 'remarks', type: 'VARCHAR(500)', constraint: '', default: '', comment: '备注' },
+                { name: 'status', type: 'TINYINT', constraint: '', default: '1', comment: '状态(0=禁用,1=启用)' },
+                { name: 'create_time', type: 'DATETIME', constraint: '', default: 'CURRENT_TIMESTAMP', comment: '创建时间' },
+                { name: 'update_time', type: 'DATETIME', constraint: '', default: 'CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP', comment: '更新时间' }
+            ]
+        },
+        patients: {
+            title: 'patients',
+            subtitle: '患者信息表 - 患者基本信息管理',
+            fields: [
+                { name: 'id', type: 'BIGINT', constraint: 'PRIMARY KEY', default: 'AUTO_INCREMENT', comment: '患者ID' },
+                { name: 'patient_name', type: 'VARCHAR(50)', constraint: 'NOT NULL', default: '', comment: '患者姓名' },
+                { name: 'id_card', type: 'VARCHAR(18)', constraint: '', default: '', comment: '身份证号' },
+                { name: 'gender', type: 'ENUM', constraint: '', default: '', comment: '性别(男/女)' },
+                { name: 'birth_date', type: 'DATE', constraint: '', default: '', comment: '出生日期' },
+                { name: 'phone', type: 'VARCHAR(20)', constraint: '', default: '', comment: '联系电话' },
+                { name: 'address', type: 'VARCHAR(500)', constraint: '', default: '', comment: '地址' },
+                { name: 'emergency_contact', type: 'VARCHAR(50)', constraint: '', default: '', comment: '紧急联系人' },
+                { name: 'emergency_phone', type: 'VARCHAR(20)', constraint: '', default: '', comment: '紧急联系电话' },
+                { name: 'status', type: 'TINYINT', constraint: '', default: '1', comment: '状态(0=禁用,1=启用)' },
+                { name: 'create_time', type: 'DATETIME', constraint: '', default: 'CURRENT_TIMESTAMP', comment: '创建时间' },
+                { name: 'update_time', type: 'DATETIME', constraint: '', default: 'CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP', comment: '更新时间' }
+            ]
+        },
+        insured_persons: {
+            title: 'insured_persons',
+            subtitle: '参保人员表 - 医保参保人员信息管理',
+            fields: [
+                { name: 'id', type: 'BIGINT', constraint: 'PRIMARY KEY', default: 'AUTO_INCREMENT', comment: '参保人员ID' },
+                { name: 'person_name', type: 'VARCHAR(50)', constraint: 'NOT NULL', default: '', comment: '姓名' },
+                { name: 'id_card', type: 'VARCHAR(18)', constraint: 'NOT NULL UNIQUE', default: '', comment: '身份证号' },
+                { name: 'gender', type: 'ENUM', constraint: '', default: '', comment: '性别(男/女)' },
+                { name: 'birth_date', type: 'DATE', constraint: '', default: '', comment: '出生日期' },
+                { name: 'phone', type: 'VARCHAR(20)', constraint: '', default: '', comment: '联系电话' },
+                { name: 'address', type: 'VARCHAR(500)', constraint: '', default: '', comment: '地址' },
+                { name: 'is_insured', type: 'TINYINT', constraint: '', default: '1', comment: '是否医保(0=否,1=是)' },
+                { name: 'employee_type', type: 'ENUM', constraint: 'NOT NULL', default: '', comment: '就业状态(在职/退休)' },
+                { name: 'insurance_number', type: 'VARCHAR(50)', constraint: '', default: '', comment: '医保卡号' },
+                { name: 'company', type: 'VARCHAR(200)', constraint: '', default: '', comment: '工作单位' },
+                { name: 'status', type: 'TINYINT', constraint: '', default: '1', comment: '状态(0=禁用,1=启用)' },
+                { name: 'create_time', type: 'DATETIME', constraint: '', default: 'CURRENT_TIMESTAMP', comment: '创建时间' },
+                { name: 'update_time', type: 'DATETIME', constraint: '', default: 'CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP', comment: '更新时间' }
+            ]
+        },
+        patient_prescriptions: {
+            title: 'patient_prescriptions',
+            subtitle: '患者药品处方表 - 医生开具的药品处方记录',
+            fields: [
+                { name: 'id', type: 'BIGINT', constraint: 'PRIMARY KEY', default: 'AUTO_INCREMENT', comment: 'ID' },
+                { name: 'patient_id', type: 'BIGINT', constraint: 'NOT NULL FOREIGN KEY', default: '', comment: '患者ID' },
+                { name: 'drug_id', type: 'BIGINT', constraint: 'NOT NULL FOREIGN KEY', default: '', comment: '药品ID' },
+                { name: 'prescription_date', type: 'DATETIME', constraint: 'NOT NULL', default: '', comment: '处方时间' },
+                { name: 'doctor_name', type: 'VARCHAR(50)', constraint: 'NOT NULL', default: '', comment: '医生姓名' },
+                { name: 'department', type: 'VARCHAR(100)', constraint: '', default: '', comment: '科室' },
+                { name: 'dosage', type: 'VARCHAR(200)', constraint: '', default: '', comment: '剂量' },
+                { name: 'usage_method', type: 'VARCHAR(500)', constraint: '', default: '', comment: '用法' },
+                { name: 'frequency', type: 'VARCHAR(100)', constraint: '', default: '', comment: '频次' },
+                { name: 'duration', type: 'VARCHAR(100)', constraint: '', default: '', comment: '疗程' },
+                { name: 'quantity', type: 'DECIMAL(10,2)', constraint: 'NOT NULL', default: '', comment: '数量' },
+                { name: 'unit_price', type: 'DECIMAL(10,2)', constraint: 'NOT NULL', default: '', comment: '单价' },
+                { name: 'total_amount', type: 'DECIMAL(10,2)', constraint: 'NOT NULL', default: '', comment: '总金额' },
+                { name: 'status', type: 'TINYINT', constraint: '', default: '1', comment: '状态(0=无效,1=有效)' },
+                { name: 'create_time', type: 'DATETIME', constraint: '', default: 'CURRENT_TIMESTAMP', comment: '创建时间' },
+                { name: 'update_time', type: 'DATETIME', constraint: '', default: 'CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP', comment: '更新时间' }
+            ]
+        },
+        reimbursement_records: {
+            title: 'reimbursement_records',
+            subtitle: '费用报销记录表 - 医保费用报销的完整记录',
+            fields: [
+                { name: 'id', type: 'BIGINT', constraint: 'PRIMARY KEY', default: 'AUTO_INCREMENT', comment: 'ID' },
+                { name: 'insured_person_id', type: 'BIGINT', constraint: 'NOT NULL FOREIGN KEY', default: '', comment: '参保人员ID' },
+                { name: 'patient_id', type: 'BIGINT', constraint: 'FOREIGN KEY', default: '', comment: '患者ID(如果参保人员就是患者)' },
+                { name: 'hospital_level', type: 'ENUM', constraint: 'NOT NULL', default: '', comment: '医院等级(一级/二级/三级)' },
+                { name: 'total_drug_amount', type: 'DECIMAL(10,2)', constraint: '', default: '0', comment: '药品费用总额' },
+                { name: 'total_treatment_amount', type: 'DECIMAL(10,2)', constraint: '', default: '0', comment: '诊疗费用总额' },
+                { name: 'total_service_amount', type: 'DECIMAL(10,2)', constraint: '', default: '0', comment: '医疗服务费用总额' },
+                { name: 'total_amount', type: 'DECIMAL(10,2)', constraint: 'NOT NULL', default: '', comment: '总费用' },
+                { name: 'drug_reimbursement', type: 'DECIMAL(10,2)', constraint: '', default: '0', comment: '药品报销金额' },
+                { name: 'treatment_reimbursement', type: 'DECIMAL(10,2)', constraint: '', default: '0', comment: '诊疗报销金额' },
+                { name: 'service_reimbursement', type: 'DECIMAL(10,2)', constraint: '', default: '0', comment: '医疗服务报销金额' },
+                { name: 'total_reimbursement', type: 'DECIMAL(10,2)', constraint: 'NOT NULL', default: '', comment: '总报销金额' },
+                { name: 'self_payment', type: 'DECIMAL(10,2)', constraint: 'NOT NULL', default: '', comment: '自付金额' },
+                { name: 'reimbursement_date', type: 'DATETIME', constraint: 'NOT NULL', default: '', comment: '报销时间' },
+                { name: 'operator', type: 'VARCHAR(50)', constraint: 'NOT NULL', default: '', comment: '操作员' },
+                { name: 'remarks', type: 'TEXT', constraint: '', default: '', comment: '备注' },
+                { name: 'status', type: 'TINYINT', constraint: '', default: '1', comment: '状态(0=无效,1=有效)' },
+                { name: 'create_time', type: 'DATETIME', constraint: '', default: 'CURRENT_TIMESTAMP', comment: '创建时间' },
+                { name: 'update_time', type: 'DATETIME', constraint: '', default: 'CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP', comment: '更新时间' }
+            ]
+        }
+    };
+
+    // 为其他表格添加简化定义
+    ['sys_user_role', 'sys_role_permission', 'level2_hospital_ratios', 'level1_hospital_ratios',
+        'patient_diagnoses', 'patient_treatments', 'patient_medical_services'].forEach(tableName => {
+        if (!tableDefinitions[tableName]) {
+            tableDefinitions[tableName] = {
+                title: tableName,
+                subtitle: `${tableName} - 数据表`,
+                fields: [
+                    { name: 'id', type: 'BIGINT', constraint: 'PRIMARY KEY', default: 'AUTO_INCREMENT', comment: '主键ID' },
+                    { name: '...', type: 'VARCHAR', constraint: '', default: '', comment: '更多字段请参考数据库设计文档' }
+                ]
+            };
+        }
+    });
+
+    // 获取数据类型的CSS类名
+    function getTypeClass(type) {
+        const typeMap = {
+            'BIGINT': 'bigint',
+            'VARCHAR': 'varchar',
+            'INT': 'int',
+            'DECIMAL': 'decimal',
+            'DATETIME': 'datetime',
+            'DATE': 'date',
+            'TEXT': 'text',
+            'TINYINT': 'tinyint',
+            'ENUM': 'enum'
+        };
+
+        for (const [key, value] of Object.entries(typeMap)) {
+            if (type.includes(key)) {
+                return value;
+            }
+        }
+        return 'varchar';
+    }
+
+    // 获取约束标签
+    function getConstraintBadges(constraint) {
+        const badges = [];
+        if (constraint.includes('PRIMARY KEY')) {
+            badges.push('<span class="key-indicator primary">PK</span>');
+        }
+        if (constraint.includes('UNIQUE')) {
+            badges.push('<span class="key-indicator unique">UK</span>');
+        }
+        if (constraint.includes('FOREIGN KEY')) {
+            badges.push('<span class="key-indicator foreign">FK</span>');
+        }
+        return badges.join('');
+    }
+
+    // 显示表格详情
+    function showTableDetails(tableName) {
+        const definition = tableDefinitions[tableName];
+        if (!definition) return;
+
+        // 隐藏占位符
+        document.querySelector('.placeholder').style.display = 'none';
+
+        // 显示详情
+        const detailsElement = document.getElementById('table-details-template');
+        detailsElement.classList.add('active');
+
+        // 设置标题
+        document.getElementById('table-title').textContent = definition.title;
+        document.getElementById('table-subtitle').textContent = definition.subtitle;
+
+        // 计算统计信息
+        const fieldCount = definition.fields.length;
+        const indexCount = definition.fields.filter(f => f.constraint.includes('INDEX') || f.constraint.includes('KEY')).length;
+        const keyCount = definition.fields.filter(f => f.constraint.includes('KEY') || f.constraint.includes('UNIQUE')).length;
+
+        document.getElementById('field-count').textContent = fieldCount;
+        document.getElementById('index-count').textContent = indexCount;
+        document.getElementById('key-count').textContent = keyCount;
+
+        // 生成字段表格
+        const tbody = document.getElementById('fields-body');
+        tbody.innerHTML = '';
+
+        definition.fields.forEach(field => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                    <td>
+                        <strong>${field.name}</strong>
+                        ${getConstraintBadges(field.constraint)}
+                    </td>
+                    <td>
+                        <span class="field-type ${getTypeClass(field.type)}">${field.type}</span>
+                    </td>
+                    <td>${field.constraint || '-'}</td>
+                    <td><code>${field.default || '-'}</code></td>
+                    <td>${field.comment}</td>
+                `;
+            tbody.appendChild(row);
+        });
+    }
+
+    // 绑定点击事件
+    document.addEventListener('DOMContentLoaded', function() {
+        const tableItems = document.querySelectorAll('.table-item');
+
+        tableItems.forEach(item => {
+            item.addEventListener('click', function() {
+                // 移除其他选中状态
+                tableItems.forEach(i => i.classList.remove('active'));
+
+                // 添加选中状态
+                this.classList.add('active');
+
+                // 显示表格详情
+                const tableName = this.getAttribute('data-table');
+                showTableDetails(tableName);
+            });
+        });
+    });
+</script>
+</body>
+</html>
