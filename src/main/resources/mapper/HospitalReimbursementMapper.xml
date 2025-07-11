@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.neusoft.medical.mapper.HospitalReimbursementMapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="HospitalReimbursementResultMap" type="com.neusoft.medical.entity.HospitalReimbursement">
+        <id column="id" property="id" />
+        <result column="min_pay_level" property="minPayLevel" />
+        <result column="max_pay_level" property="maxPayLevel" />
+        <result column="people_type" property="peopleType" />
+        <result column="pay_proportion" property="payProportion" />
+        <result column="hospital_level" property="hospitalLevel" />
+        <result column="status" property="status" />
+        <result column="created_time" property="createdTime" />
+        <result column="updated_time" property="updatedTime" />
+    </resultMap>
+
+    <!-- 基础查询字段 -->
+    <sql id="Base_Column_List">
+        id, min_pay_level, max_pay_level, people_type, pay_proportion,
+        hospital_level, status, created_time, updated_time
+    </sql>
+
+    <!-- 根据ID查询医院报销比例信息 -->
+    <select id="selectById" parameterType="java.lang.Integer" resultMap="HospitalReimbursementResultMap">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM hospital_reimbursement
+        WHERE id = #{id}
+    </select>
+
+    <!-- 根据医院等级和人员类别查询报销比例列表 -->
+    <select id="selectByHospitalLevel" resultMap="HospitalReimbursementResultMap">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM hospital_reimbursement
+        WHERE hospital_level = #{hospitalLevel}
+        <if test="peopleType != null">
+            AND people_type = #{peopleType}
+        </if>
+        ORDER BY CAST(min_pay_level AS UNSIGNED) ASC
+    </select>
+
+    <!-- 新增医院报销比例 -->
+    <insert id="insert" parameterType="com.neusoft.medical.entity.HospitalReimbursement" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO hospital_reimbursement (
+            min_pay_level, max_pay_level, people_type, pay_proportion,
+            hospital_level, status, created_time, updated_time
+        ) VALUES (
+                     #{minPayLevel}, #{maxPayLevel}, #{peopleType}, #{payProportion},
+                     #{hospitalLevel}, #{status}, #{createdTime}, #{updatedTime}
+                 )
+    </insert>
+
+    <!-- 根据ID更新医院报销比例 -->
+    <update id="updateById" parameterType="com.neusoft.medical.entity.HospitalReimbursement">
+        UPDATE hospital_reimbursement
+        <set>
+            <if test="minPayLevel != null">min_pay_level = #{minPayLevel},</if>
+            <if test="maxPayLevel != null">max_pay_level = #{maxPayLevel},</if>
+            <if test="peopleType != null">people_type = #{peopleType},</if>
+            <if test="payProportion != null">pay_proportion = #{payProportion},</if>
+            <if test="hospitalLevel != null">hospital_level = #{hospitalLevel},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="updatedTime != null">updated_time = #{updatedTime},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <!-- 根据ID删除医院报销比例 -->
+    <delete id="deleteById" parameterType="java.lang.Integer">
+        DELETE FROM hospital_reimbursement WHERE id = #{id}
+    </delete>
+
+    <!-- 检查费用区间是否重叠 -->
+    <select id="countOverlapRange" resultType="java.lang.Integer">
+        SELECT COUNT(1)
+        FROM hospital_reimbursement
+        WHERE hospital_level = #{hospitalLevel}
+        AND people_type = #{peopleType}
+        AND (
+        (CAST(#{minPayLevel} AS UNSIGNED) >= CAST(min_pay_level AS UNSIGNED) AND CAST(#{minPayLevel} AS UNSIGNED) &lt; CAST(max_pay_level AS UNSIGNED))
+        OR
+        (CAST(#{maxPayLevel} AS UNSIGNED) > CAST(min_pay_level AS UNSIGNED) AND CAST(#{maxPayLevel} AS UNSIGNED) &lt;= CAST(max_pay_level AS UNSIGNED))
+        OR
+        (CAST(#{minPayLevel} AS UNSIGNED) &lt;= CAST(min_pay_level AS UNSIGNED) AND CAST(#{maxPayLevel} AS UNSIGNED) >= CAST(max_pay_level AS UNSIGNED))
+        )
+        <if test="excludeId != null">
+            AND id != #{excludeId}
+        </if>
+    </select>
+
+</mapper>
