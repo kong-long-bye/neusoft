@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.neusoft.medical.mapper.DrugInfoMapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="DrugInfoResultMap" type="com.neusoft.medical.entity.DrugInfo">
+        <id column="id" property="id" />
+        <result column="insurance_type" property="insuranceType" />
+        <result column="china_name" property="chinaName" />
+        <result column="goods_name" property="goodsName" />
+        <result column="specifications" property="specifications" />
+        <result column="drug_unit" property="drugUnit" />
+        <result column="drug_manufacturer" property="drugManufacturer" />
+        <result column="drug_price" property="drugPrice" />
+        <result column="remarks" property="remarks" />
+        <result column="created_time" property="createdTime" />
+        <result column="updated_time" property="updatedTime" />
+    </resultMap>
+
+    <!-- 基础查询字段 -->
+    <sql id="Base_Column_List">
+        id, insurance_type, china_name, goods_name, specifications,
+        drug_unit, drug_manufacturer, drug_price, remarks,
+        created_time, updated_time
+    </sql>
+
+    <!-- 根据ID查询药品信息 -->
+    <select id="selectById" parameterType="java.lang.Integer" resultMap="DrugInfoResultMap">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM drug_info
+        WHERE id = #{id}
+    </select>
+
+    <!-- 分页查询药品信息 -->
+    <select id="selectPage" resultMap="DrugInfoResultMap">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM drug_info
+        <where>
+            <if test="drugName != null and drugName != ''">
+                AND (china_name LIKE CONCAT('%', #{drugName}, '%')
+                OR goods_name LIKE CONCAT('%', #{drugName}, '%'))
+            </if>
+        </where>
+        ORDER BY created_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <!-- 查询药品总数 -->
+    <select id="selectCount" resultType="java.lang.Long">
+        SELECT COUNT(1)
+        FROM drug_info
+        <where>
+            <if test="drugName != null and drugName != ''">
+                AND (china_name LIKE CONCAT('%', #{drugName}, '%')
+                OR goods_name LIKE CONCAT('%', #{drugName}, '%'))
+            </if>
+        </where>
+    </select>
+
+    <!-- 根据药品名称搜索 -->
+    <select id="searchByName" resultMap="DrugInfoResultMap">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM drug_info
+        WHERE china_name LIKE CONCAT('%', #{drugName}, '%')
+        OR goods_name LIKE CONCAT('%', #{drugName}, '%')
+        ORDER BY china_name ASC
+        LIMIT 20
+    </select>
+
+    <!-- 新增药品信息 -->
+    <insert id="insert" parameterType="com.neusoft.medical.entity.DrugInfo" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO drug_info (
+            insurance_type, china_name, goods_name, specifications,
+            drug_unit, drug_manufacturer, drug_price, remarks,
+            created_time, updated_time
+        ) VALUES (
+                     #{insuranceType}, #{chinaName}, #{goodsName}, #{specifications},
+                     #{drugUnit}, #{drugManufacturer}, #{drugPrice}, #{remarks},
+                     #{createdTime}, #{updatedTime}
+                 )
+    </insert>
+
+    <!-- 根据ID更新药品信息 -->
+    <update id="updateById" parameterType="com.neusoft.medical.entity.DrugInfo">
+        UPDATE drug_info
+        <set>
+            <if test="insuranceType != null">insurance_type = #{insuranceType},</if>
+            <if test="chinaName != null">china_name = #{chinaName},</if>
+            <if test="goodsName != null">goods_name = #{goodsName},</if>
+            <if test="specifications != null">specifications = #{specifications},</if>
+            <if test="drugUnit != null">drug_unit = #{drugUnit},</if>
+            <if test="drugManufacturer != null">drug_manufacturer = #{drugManufacturer},</if>
+            <if test="drugPrice != null">drug_price = #{drugPrice},</if>
+            <if test="remarks != null">remarks = #{remarks},</if>
+            <if test="updatedTime != null">updated_time = #{updatedTime},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <!-- 根据ID删除药品信息 -->
+    <delete id="deleteById" parameterType="java.lang.Integer">
+        DELETE FROM drug_info WHERE id = #{id}
+    </delete>
+
+    <!-- 批量删除药品信息 -->
+    <delete id="deleteBatchByIds">
+        DELETE FROM drug_info
+        WHERE id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>
