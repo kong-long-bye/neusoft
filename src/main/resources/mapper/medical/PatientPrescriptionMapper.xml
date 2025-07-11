@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.neusoft.medical.mapper.medical.PatientPrescriptionMapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="PatientPrescriptionVOMap" type="com.neusoft.medical.vo.medical.PatientPrescriptionVO">
+        <id column="id" property="id"/>
+        <result column="patient_id" property="patientId"/>
+        <result column="patient_name" property="patientName"/>
+        <result column="drug_id" property="drugId"/>
+        <result column="china_name" property="chinaName"/>
+        <result column="goods_name" property="goodsName"/>
+        <result column="specifications" property="specifications"/>
+        <result column="drug_unit" property="drugUnit"/>
+        <result column="drug_manufacturer" property="drugManufacturer"/>
+        <result column="drug_price" property="drugPrice"/>
+        <result column="insurance_type" property="insuranceType"/>
+        <result column="start_time" property="startTime"/>
+        <result column="end_time" property="endTime"/>
+        <result column="doctor_order" property="doctorOrder"/>
+        <result column="order_number" property="orderNumber"/>
+        <result column="use_method" property="useMethod"/>
+        <result column="status" property="status"/>
+        <result column="status_name" property="statusName"/>
+        <result column="created_time" property="createdTime"/>
+        <result column="updated_time" property="updatedTime"/>
+    </resultMap>
+
+    <!-- 分页查询患者药品处方信息 -->
+    <select id="selectPatientPrescriptionPage" resultMap="PatientPrescriptionVOMap">
+        SELECT 
+            id.id,
+            id.patient_id,
+            pr.real_name as patient_name,
+            id.drug_id,
+            di.china_name,
+            di.goods_name,
+            di.specifications,
+            di.drug_unit,
+            di.drug_manufacturer,
+            di.drug_price,
+            di.insurance_type,
+            id.start_time,
+            id.end_time,
+            id.doctor_order,
+            id.order_number,
+            id.use_method,
+            id.status,
+            CASE 
+                WHEN id.status = 1 THEN '正常执行'
+                WHEN id.status = 0 THEN '作废'
+                WHEN id.status = 2 THEN '停止'
+                ELSE '未知'
+            END as status_name,
+            id.created_time,
+            id.updated_time
+        FROM inpatient_drugs id
+        LEFT JOIN patient_registration pr ON id.patient_id = pr.id
+        LEFT JOIN drug_info di ON id.drug_id = di.id
+        <where>
+            <if test="patientId != null">
+                AND id.patient_id = #{patientId}
+            </if>
+            <if test="drugName != null and drugName != ''">
+                AND (di.china_name LIKE CONCAT('%', #{drugName}, '%') 
+                     OR di.goods_name LIKE CONCAT('%', #{drugName}, '%'))
+            </if>
+        </where>
+        ORDER BY id.start_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <!-- 查询患者药品处方总数 -->
+    <select id="selectPatientPrescriptionCount" resultType="long">
+        SELECT COUNT(*)
+        FROM inpatient_drugs id
+        LEFT JOIN drug_info di ON id.drug_id = di.id
+        <where>
+            <if test="patientId != null">
+                AND id.patient_id = #{patientId}
+            </if>
+            <if test="drugName != null and drugName != ''">
+                AND (di.china_name LIKE CONCAT('%', #{drugName}, '%') 
+                     OR di.goods_name LIKE CONCAT('%', #{drugName}, '%'))
+            </if>
+        </where>
+    </select>
+
+    <!-- 根据药品名称搜索药品信息 -->
+    <select id="searchDrugs" resultMap="PatientPrescriptionVOMap">
+        SELECT 
+            di.id as drug_id,
+            di.china_name,
+            di.goods_name,
+            di.specifications,
+            di.drug_unit,
+            di.drug_manufacturer,
+            di.drug_price,
+            di.insurance_type
+        FROM drug_info di
+        <where>
+            <if test="drugName != null and drugName != ''">
+                AND (di.china_name LIKE CONCAT('%', #{drugName}, '%') 
+                     OR di.goods_name LIKE CONCAT('%', #{drugName}, '%'))
+            </if>
+        </where>
+        ORDER BY di.china_name
+        LIMIT 20
+    </select>
+
+    <!-- 新增患者药品处方 -->
+    <insert id="insertPatientPrescription" parameterType="com.neusoft.medical.entity.InpatientDrugs" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO inpatient_drugs (
+            patient_id,
+            start_time,
+            end_time,
+            doctor_order,
+            order_number,
+            use_method,
+            drug_id,
+            status,
+            created_time,
+            updated_time
+        ) VALUES (
+            #{patientId},
+            #{startTime},
+            #{endTime},
+            #{doctorOrder},
+            #{orderNumber},
+            #{useMethod},
+            #{drugId},
+            #{status},
+            NOW(),
+            NOW()
+        )
+    </insert>
+
+    <!-- 根据ID查询患者药品处方信息 -->
+    <select id="selectPatientPrescriptionById" resultMap="PatientPrescriptionVOMap">
+        SELECT 
+            id.id,
+            id.patient_id,
+            pr.real_name as patient_name,
+            id.drug_id,
+            di.china_name,
+            di.goods_name,
+            di.specifications,
+            di.drug_unit,
+            di.drug_manufacturer,
+            di.drug_price,
+            di.insurance_type,
+            id.start_time,
+            id.end_time,
+            id.doctor_order,
+            id.order_number,
+            id.use_method,
+            id.status,
+            CASE 
+                WHEN id.status = 1 THEN '正常执行'
+                WHEN id.status = 0 THEN '作废'
+                WHEN id.status = 2 THEN '停止'
+                ELSE '未知'
+            END as status_name,
+            id.created_time,
+            id.updated_time
+        FROM inpatient_drugs id
+        LEFT JOIN patient_registration pr ON id.patient_id = pr.id
+        LEFT JOIN drug_info di ON id.drug_id = di.id
+        WHERE id.id = #{id}
+    </select>
+
+    <!-- 更新患者药品处方信息 -->
+    <update id="updatePatientPrescription" parameterType="com.neusoft.medical.entity.InpatientDrugs">
+        UPDATE inpatient_drugs
+        SET 
+            patient_id = #{patientId},
+            start_time = #{startTime},
+            end_time = #{endTime},
+            doctor_order = #{doctorOrder},
+            order_number = #{orderNumber},
+            use_method = #{useMethod},
+            drug_id = #{drugId},
+            status = #{status},
+            updated_time = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <!-- 删除患者药品处方信息 -->
+    <delete id="deletePatientPrescription">
+        DELETE FROM inpatient_drugs WHERE id = #{id}
+    </delete>
+
+</mapper> 

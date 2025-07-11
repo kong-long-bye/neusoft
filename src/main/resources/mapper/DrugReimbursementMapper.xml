@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.neusoft.medical.mapper.DrugReimbursementMapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="DrugReimbursementResultMap" type="com.neusoft.medical.entity.DrugReimbursement">
+        <id column="id" property="id" />
+        <result column="drug_reimbursement_type" property="drugReimbursementType" />
+        <result column="drug_reimbursement_proportion" property="drugReimbursementProportion" />
+        <result column="drug_reimbursement_info" property="drugReimbursementInfo" />
+        <result column="status" property="status" />
+        <result column="created_time" property="createdTime" />
+        <result column="updated_time" property="updatedTime" />
+    </resultMap>
+
+    <!-- 基础查询字段 -->
+    <sql id="Base_Column_List">
+        id, drug_reimbursement_type, drug_reimbursement_proportion,
+        drug_reimbursement_info, status, created_time, updated_time
+    </sql>
+
+    <!-- 根据ID查询药品报销比例信息 -->
+    <select id="selectById" parameterType="java.lang.Integer" resultMap="DrugReimbursementResultMap">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM drug_reimbursement
+        WHERE id = #{id}
+    </select>
+
+    <!-- 获取所有药品报销比例列表 -->
+    <select id="selectAll" resultMap="DrugReimbursementResultMap">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM drug_reimbursement
+        ORDER BY created_time ASC
+    </select>
+
+    <!-- 获取启用状态的药品报销比例列表 -->
+    <select id="selectEnabled" resultMap="DrugReimbursementResultMap">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM drug_reimbursement
+        WHERE status = 1
+        ORDER BY created_time ASC
+    </select>
+
+    <!-- 新增药品报销比例 -->
+    <insert id="insert" parameterType="com.neusoft.medical.entity.DrugReimbursement" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO drug_reimbursement (
+            drug_reimbursement_type, drug_reimbursement_proportion,
+            drug_reimbursement_info, status, created_time, updated_time
+        ) VALUES (
+                     #{drugReimbursementType}, #{drugReimbursementProportion},
+                     #{drugReimbursementInfo}, #{status}, #{createdTime}, #{updatedTime}
+                 )
+    </insert>
+
+    <!-- 根据ID更新药品报销比例 -->
+    <update id="updateById" parameterType="com.neusoft.medical.entity.DrugReimbursement">
+        UPDATE drug_reimbursement
+        <set>
+            <if test="drugReimbursementType != null">drug_reimbursement_type = #{drugReimbursementType},</if>
+            <if test="drugReimbursementProportion != null">drug_reimbursement_proportion = #{drugReimbursementProportion},</if>
+            <if test="drugReimbursementInfo != null">drug_reimbursement_info = #{drugReimbursementInfo},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="updatedTime != null">updated_time = #{updatedTime},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <!-- 根据ID删除药品报销比例 -->
+    <delete id="deleteById" parameterType="java.lang.Integer">
+        DELETE FROM drug_reimbursement WHERE id = #{id}
+    </delete>
+
+    <!-- 根据报销类型查询是否存在 -->
+    <select id="countByType" resultType="java.lang.Integer">
+        SELECT COUNT(1)
+        FROM drug_reimbursement
+        WHERE drug_reimbursement_type = #{drugReimbursementType}
+        <if test="excludeId != null">
+            AND id != #{excludeId}
+        </if>
+    </select>
+
+</mapper>
