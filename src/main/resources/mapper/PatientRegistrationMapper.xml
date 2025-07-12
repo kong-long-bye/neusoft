@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.neusoft.medical.mapper.PatientRegistrationMapper">
+
+    <!-- 基础结果映射 -->
+    <resultMap id="BaseResultMap" type="com.neusoft.medical.entity.PatientRegistration">
+        <id column="id" property="id" jdbcType="INTEGER"/>
+        <result column="case_number" property="caseNumber" jdbcType="VARCHAR"/>
+        <result column="real_name" property="realName" jdbcType="VARCHAR"/>
+        <result column="gender" property="gender" jdbcType="CHAR"/>
+        <result column="card_number" property="cardNumber" jdbcType="VARCHAR"/>
+        <result column="birthday" property="birthday" jdbcType="DATE"/>
+        <result column="age" property="age" jdbcType="INTEGER"/>
+        <result column="age_type" property="ageType" jdbcType="CHAR"/>
+        <result column="home_address" property="homeAddress" jdbcType="VARCHAR"/>
+        <result column="visit_date" property="visitDate" jdbcType="TIMESTAMP"/>
+        <result column="regist_method" property="registMethod" jdbcType="VARCHAR"/>
+        <result column="created_time" property="createdTime" jdbcType="TIMESTAMP"/>
+        <result column="updated_time" property="updatedTime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <!-- 基础字段列表 -->
+    <sql id="Base_Column_List">
+        id, case_number, real_name, gender, card_number, birthday, age, age_type,
+        home_address, visit_date, regist_method, created_time, updated_time
+    </sql>
+
+    <!-- 根据ID查询患者信息 -->
+    <select id="selectById" resultMap="BaseResultMap" parameterType="java.lang.Integer">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM patient_registration
+        WHERE id = #{id,jdbcType=INTEGER}
+    </select>
+
+    <!-- 根据患者姓名模糊查询 -->
+    <select id="selectByPersonName" resultMap="BaseResultMap" parameterType="java.lang.String">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM patient_registration
+        <where>
+            <if test="personName != null and personName != ''">
+                AND real_name LIKE CONCAT('%', #{personName,jdbcType=VARCHAR}, '%')
+            </if>
+        </where>
+        ORDER BY created_time DESC
+    </select>
+
+    <!-- 插入患者记录 -->
+    <insert id="insert" parameterType="com.neusoft.medical.entity.PatientRegistration" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO patient_registration
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="caseNumber != null">case_number,</if>
+            <if test="realName != null">real_name,</if>
+            <if test="gender != null">gender,</if>
+            <if test="cardNumber != null">card_number,</if>
+            <if test="birthday != null">birthday,</if>
+            <if test="age != null">age,</if>
+            <if test="ageType != null">age_type,</if>
+            <if test="homeAddress != null">home_address,</if>
+            <if test="visitDate != null">visit_date,</if>
+            <if test="registMethod != null">regist_method,</if>
+            <if test="createdTime != null">created_time,</if>
+            <if test="updatedTime != null">updated_time,</if>
+        </trim>
+        <trim prefix="VALUES (" suffix=")" suffixOverrides=",">
+            <if test="caseNumber != null">#{caseNumber,jdbcType=VARCHAR},</if>
+            <if test="realName != null">#{realName,jdbcType=VARCHAR},</if>
+            <if test="gender != null">#{gender,jdbcType=CHAR},</if>
+            <if test="cardNumber != null">#{cardNumber,jdbcType=VARCHAR},</if>
+            <if test="birthday != null">#{birthday,jdbcType=DATE},</if>
+            <if test="age != null">#{age,jdbcType=INTEGER},</if>
+            <if test="ageType != null">#{ageType,jdbcType=CHAR},</if>
+            <if test="homeAddress != null">#{homeAddress,jdbcType=VARCHAR},</if>
+            <if test="visitDate != null">#{visitDate,jdbcType=TIMESTAMP},</if>
+            <if test="registMethod != null">#{registMethod,jdbcType=VARCHAR},</if>
+            <if test="createdTime != null">#{createdTime,jdbcType=TIMESTAMP},</if>
+            <if test="updatedTime != null">#{updatedTime,jdbcType=TIMESTAMP},</if>
+        </trim>
+    </insert>
+
+    <!-- 根据ID更新患者信息 -->
+    <update id="updateById" parameterType="com.neusoft.medical.entity.PatientRegistration">
+        UPDATE patient_registration
+        <set>
+            <if test="caseNumber != null">case_number = #{caseNumber,jdbcType=VARCHAR},</if>
+            <if test="realName != null">real_name = #{realName,jdbcType=VARCHAR},</if>
+            <if test="gender != null">gender = #{gender,jdbcType=CHAR},</if>
+            <if test="cardNumber != null">card_number = #{cardNumber,jdbcType=VARCHAR},</if>
+            <if test="birthday != null">birthday = #{birthday,jdbcType=DATE},</if>
+            <if test="age != null">age = #{age,jdbcType=INTEGER},</if>
+            <if test="ageType != null">age_type = #{ageType,jdbcType=CHAR},</if>
+            <if test="homeAddress != null">home_address = #{homeAddress,jdbcType=VARCHAR},</if>
+            <if test="visitDate != null">visit_date = #{visitDate,jdbcType=TIMESTAMP},</if>
+            <if test="registMethod != null">regist_method = #{registMethod,jdbcType=VARCHAR},</if>
+            <if test="updatedTime != null">updated_time = #{updatedTime,jdbcType=TIMESTAMP},</if>
+        </set>
+        WHERE id = #{id,jdbcType=INTEGER}
+    </update>
+
+    <!-- 查询所有患者 -->
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM patient_registration
+        ORDER BY created_time DESC
+    </select>
+
+    <!-- 根据患者姓名查询总数 -->
+    <select id="countByPersonName" resultType="java.lang.Long" parameterType="java.lang.String">
+        SELECT COUNT(*)
+        FROM patient_registration
+        <where>
+            <if test="personName != null and personName != ''">
+                AND real_name LIKE CONCAT('%', #{personName,jdbcType=VARCHAR}, '%')
+            </if>
+        </where>
+    </select>
+
+    <!-- 根据患者姓名分页查询 -->
+    <select id="selectByPersonNameWithPage" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM patient_registration
+        <where>
+            <if test="personName != null and personName != ''">
+                AND real_name LIKE CONCAT('%', #{personName,jdbcType=VARCHAR}, '%')
+            </if>
+        </where>
+        ORDER BY created_time DESC
+        LIMIT #{offset,jdbcType=INTEGER}, #{limit,jdbcType=INTEGER}
+    </select>
+
+</mapper>
