@@ -1,0 +1,308 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.neusoft.medical.mapper.ReimbursementReportMapper">
+
+    <!-- 患者信息结果映射 -->
+    <resultMap id="PatientRegistrationResultMap" type="com.neusoft.medical.entity.PatientRegistration">
+        <id column="id" property="id"/>
+        <result column="case_number" property="caseNumber"/>
+        <result column="real_name" property="realName"/>
+        <result column="gender" property="gender"/>
+        <result column="card_number" property="cardNumber"/>
+        <result column="birthday" property="birthday"/>
+        <result column="age" property="age"/>
+        <result column="age_type" property="ageType"/>
+        <result column="home_address" property="homeAddress"/>
+        <result column="visit_date" property="visitDate"/>
+        <result column="regist_method" property="registMethod"/>
+        <result column="created_time" property="createdTime"/>
+        <result column="updated_time" property="updatedTime"/>
+    </resultMap>
+
+    <!-- 根据条件查询患者信息总数 -->
+    <select id="countByCondition" resultType="java.lang.Long">
+        SELECT COUNT(1)
+        FROM patient_registration
+        WHERE 1=1
+        <if test="params.realName != null and params.realName != ''">
+            AND real_name LIKE CONCAT('%', #{params.realName}, '%')
+        </if>
+        <if test="params.caseNumber != null and params.caseNumber != ''">
+            AND case_number = #{params.caseNumber}
+        </if>
+        <if test="params.cardNumber != null and params.cardNumber != ''">
+            AND card_number = #{params.cardNumber}
+        </if>
+        <if test="params.registMethod != null and params.registMethod != ''">
+            AND regist_method = #{params.registMethod}
+        </if>
+    </select>
+
+    <!-- 根据条件分页查询患者信息 -->
+    <select id="selectPageByCondition" resultMap="PatientRegistrationResultMap">
+        SELECT
+        id,
+        case_number,
+        real_name,
+        gender,
+        card_number,
+        birthday,
+        age,
+        age_type,
+        home_address,
+        visit_date,
+        regist_method,
+        created_time,
+        updated_time
+        FROM patient_registration
+        WHERE 1=1
+        <if test="params.realName != null and params.realName != ''">
+            AND real_name LIKE CONCAT('%', #{params.realName}, '%')
+        </if>
+        <if test="params.caseNumber != null and params.caseNumber != ''">
+            AND case_number = #{params.caseNumber}
+        </if>
+        <if test="params.cardNumber != null and params.cardNumber != ''">
+            AND card_number = #{params.cardNumber}
+        </if>
+        <if test="params.registMethod != null and params.registMethod != ''">
+            AND regist_method = #{params.registMethod}
+        </if>
+        ORDER BY created_time DESC
+        <if test="params.offset != null and params.limit != null">
+            LIMIT #{params.offset}, #{params.limit}
+        </if>
+    </select>
+
+    <!-- 根据条件查询患者信息列表 -->
+    <select id="selectListByCondition" resultMap="PatientRegistrationResultMap">
+        SELECT
+        id,
+        case_number,
+        real_name,
+        gender,
+        card_number,
+        birthday,
+        age,
+        age_type,
+        home_address,
+        visit_date,
+        regist_method,
+        created_time,
+        updated_time
+        FROM patient_registration
+        WHERE 1=1
+        <if test="params.realName != null and params.realName != ''">
+            AND real_name LIKE CONCAT('%', #{params.realName}, '%')
+        </if>
+        <if test="params.caseNumber != null and params.caseNumber != ''">
+            AND case_number = #{params.caseNumber}
+        </if>
+        <if test="params.cardNumber != null and params.cardNumber != ''">
+            AND card_number = #{params.cardNumber}
+        </if>
+        <if test="params.registMethod != null and params.registMethod != ''">
+            AND regist_method = #{params.registMethod}
+        </if>
+        ORDER BY created_time DESC
+    </select>
+
+    <!-- 根据患者ID查询患者信息 -->
+    <select id="selectPatientById" resultMap="PatientRegistrationResultMap">
+        SELECT
+            id,
+            case_number,
+            real_name,
+            gender,
+            card_number,
+            birthday,
+            age,
+            age_type,
+            home_address,
+            visit_date,
+            regist_method,
+            created_time,
+            updated_time
+        FROM patient_registration
+        WHERE id = #{patientId}
+    </select>
+
+    <!-- 查询药品分类统计数据 -->
+    <select id="selectDrugCategoryStatistics" resultType="java.util.HashMap">
+        SELECT
+        CASE
+        WHEN di.insurance_type = '甲类药品' THEN '甲类药品'
+        WHEN di.insurance_type = '乙类药品' THEN '乙类药品'
+        WHEN di.insurance_type = '丙类药品' THEN '丙类药品'
+        ELSE COALESCE(di.insurance_type, '其他')
+        END AS category_name,
+        SUM(di.drug_price * id_drug.order_number) AS amount,
+        COUNT(DISTINCT id_drug.id) AS item_count
+        FROM inpatient_drugs id_drug
+        INNER JOIN drug_info di ON id_drug.drug_id = di.id
+        WHERE id_drug.patient_id = #{params.personId}
+        AND id_drug.status = 1
+        <if test="params.startDate != null">
+            AND id_drug.start_time >= #{params.startDate}
+        </if>
+        <if test="params.endDate != null">
+            AND id_drug.start_time &lt;= #{params.endDate}
+        </if>
+        GROUP BY
+        CASE
+        WHEN di.insurance_type = '甲类药品' THEN '甲类药品'
+        WHEN di.insurance_type = '乙类药品' THEN '乙类药品'
+        WHEN di.insurance_type = '丙类药品' THEN '丙类药品'
+        ELSE COALESCE(di.insurance_type, '其他')
+        END
+        HAVING SUM(di.drug_price * id_drug.order_number) > 0
+        ORDER BY amount DESC
+    </select>
+
+    <!-- 查询费用类型统计数据 -->
+    <select id="selectExpenseTypeStatistics" resultType="java.util.HashMap">
+        SELECT
+        expense_type_name,
+        SUM(amount) AS amount,
+        SUM(item_count) AS item_count
+        FROM (
+        -- 药品费用
+        SELECT
+        '药品费用' AS expense_type_name,
+        SUM(di.drug_price * id_drug.order_number) AS amount,
+        COUNT(DISTINCT id_drug.id) AS item_count
+        FROM inpatient_drugs id_drug
+        INNER JOIN drug_info di ON id_drug.drug_id = di.id
+        WHERE id_drug.patient_id = #{params.personId}
+        AND id_drug.status = 1
+        <if test="params.startDate != null">
+            AND id_drug.start_time >= #{params.startDate}
+        </if>
+        <if test="params.endDate != null">
+            AND id_drug.start_time &lt;= #{params.endDate}
+        </if>
+
+        UNION ALL
+
+        -- 诊疗项目费用
+        SELECT
+        '诊疗项目费用' AS expense_type_name,
+        SUM(dt.medical_price) AS amount,
+        COUNT(DISTINCT id_diag.id) AS item_count
+        FROM inpatient_diagnosis id_diag
+        INNER JOIN diagnosis_treatment dt ON id_diag.diagnosis_id = dt.id
+        WHERE id_diag.patient_id = #{params.personId}
+        AND id_diag.status = 1
+        <if test="params.startDate != null">
+            AND id_diag.order_time >= #{params.startDate}
+        </if>
+        <if test="params.endDate != null">
+            AND id_diag.order_time &lt;= #{params.endDate}
+        </if>
+
+        UNION ALL
+
+        -- 医疗服务费用
+        SELECT
+        '医疗服务费用' AS expense_type_name,
+        SUM(ms.medical_price) AS amount,
+        COUNT(DISTINCT im.id) AS item_count
+        FROM inpatient_medical im
+        INNER JOIN medical_service ms ON im.medical_id = ms.id
+        WHERE im.patient_id = #{params.personId}
+        AND im.status = 1
+        <if test="params.startDate != null">
+            AND im.order_time >= #{params.startDate}
+        </if>
+        <if test="params.endDate != null">
+            AND im.order_time &lt;= #{params.endDate}
+        </if>
+        ) expense_summary
+        GROUP BY expense_type_name
+        HAVING SUM(amount) > 0
+        ORDER BY SUM(amount) DESC
+    </select>
+
+    <!-- 查询费用汇总数据 -->
+    <select id="selectExpenseSummary" resultType="java.util.HashMap">
+        SELECT
+        -- 甲类药品费用
+        COALESCE((
+        SELECT SUM(di.drug_price * id_drug.order_number)
+        FROM inpatient_drugs id_drug
+        INNER JOIN drug_info di ON id_drug.drug_id = di.id
+        WHERE id_drug.patient_id = #{params.personId}
+        AND id_drug.status = 1
+        AND di.insurance_type = '甲类药品'
+        <if test="params.startDate != null">
+            AND id_drug.start_time >= #{params.startDate}
+        </if>
+        <if test="params.endDate != null">
+            AND id_drug.start_time &lt;= #{params.endDate}
+        </if>
+        ), 0) AS category_a_drug_amount,
+
+        -- 乙类药品费用
+        COALESCE((
+        SELECT SUM(di.drug_price * id_drug.order_number)
+        FROM inpatient_drugs id_drug
+        INNER JOIN drug_info di ON id_drug.drug_id = di.id
+        WHERE id_drug.patient_id = #{params.personId}
+        AND id_drug.status = 1
+        AND di.insurance_type = '乙类药品'
+        <if test="params.startDate != null">
+            AND id_drug.start_time >= #{params.startDate}
+        </if>
+        <if test="params.endDate != null">
+            AND id_drug.start_time &lt;= #{params.endDate}
+        </if>
+        ), 0) AS category_b_drug_amount,
+
+        -- 丙类药品费用
+        COALESCE((
+        SELECT SUM(di.drug_price * id_drug.order_number)
+        FROM inpatient_drugs id_drug
+        INNER JOIN drug_info di ON id_drug.drug_id = di.id
+        WHERE id_drug.patient_id = #{params.personId}
+        AND id_drug.status = 1
+        AND di.insurance_type = '丙类药品'
+        <if test="params.startDate != null">
+            AND id_drug.start_time >= #{params.startDate}
+        </if>
+        <if test="params.endDate != null">
+            AND id_drug.start_time &lt;= #{params.endDate}
+        </if>
+        ), 0) AS category_c_drug_amount,
+
+        -- 诊疗项目费用
+        COALESCE((
+        SELECT SUM(dt.medical_price)
+        FROM inpatient_diagnosis id_diag
+        INNER JOIN diagnosis_treatment dt ON id_diag.diagnosis_id = dt.id
+        WHERE id_diag.patient_id = #{params.personId}
+        AND id_diag.status = 1
+        <if test="params.startDate != null">
+            AND id_diag.order_time >= #{params.startDate}
+        </if>
+        <if test="params.endDate != null">
+            AND id_diag.order_time &lt;= #{params.endDate}
+        </if>
+        ), 0) AS treatment_amount,
+
+        -- 医疗服务费用
+        COALESCE((
+        SELECT SUM(ms.medical_price)
+        FROM inpatient_medical im
+        INNER JOIN medical_service ms ON im.medical_id = ms.id
+        WHERE im.patient_id = #{params.personId}
+        AND im.status = 1
+        <if test="params.startDate != null">
+            AND im.order_time >= #{params.startDate}
+        </if>
+        <if test="params.endDate != null">
+            AND im.order_time &lt;= #{params.endDate}
+        </if>
+        ), 0) AS service_amount
+    </select>
+
+</mapper>
