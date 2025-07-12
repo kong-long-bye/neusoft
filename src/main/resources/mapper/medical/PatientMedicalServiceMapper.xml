@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.neusoft.medical.mapper.medical.PatientMedicalServiceMapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="PatientMedicalServiceVOMap" type="com.neusoft.medical.vo.medical.PatientMedicalServiceVO">
+        <id column="id" property="id"/>
+        <result column="patient_id" property="patientId"/>
+        <result column="patient_name" property="patientName"/>
+        <result column="medical_id" property="medicalId"/>
+        <result column="medical_type" property="medicalType"/>
+        <result column="medical_number" property="medicalNumber"/>
+        <result column="country_number" property="countryNumber"/>
+        <result column="medical_name" property="medicalName"/>
+        <result column="medical_info" property="medicalInfo"/>
+        <result column="medical_exclude" property="medicalExclude"/>
+        <result column="medical_unit" property="medicalUnit"/>
+        <result column="medical_price" property="medicalPrice"/>
+        <result column="order_time" property="orderTime"/>
+        <result column="doctor_order" property="doctorOrder"/>
+        <result column="use_method" property="useMethod"/>
+        <result column="status" property="status"/>
+        <result column="status_name" property="statusName"/>
+        <result column="created_time" property="createdTime"/>
+        <result column="updated_time" property="updatedTime"/>
+    </resultMap>
+
+    <!-- 分页查询患者医疗服务信息 -->
+    <select id="selectPatientMedicalServicePage" resultMap="PatientMedicalServiceVOMap">
+        SELECT 
+            im.id,
+            im.patient_id,
+            pr.real_name as patient_name,
+            im.medical_id,
+            ms.medical_type,
+            ms.medical_number,
+            ms.country_number,
+            ms.medical_name,
+            ms.medical_info,
+            ms.medical_exclude,
+            ms.medical_unit,
+            ms.medical_price,
+            im.order_time,
+            im.doctor_order,
+            im.use_method,
+            im.status,
+            CASE 
+                WHEN im.status = 1 THEN '正常执行'
+                WHEN im.status = 0 THEN '作废'
+                WHEN im.status = 2 THEN '停止'
+                ELSE '未知'
+            END as status_name,
+            im.created_time,
+            im.updated_time
+        FROM inpatient_medical im
+        LEFT JOIN patient_registration pr ON im.patient_id = pr.id
+        LEFT JOIN medical_service ms ON im.medical_id = ms.id
+        <where>
+            <if test="patientId != null">
+                AND im.patient_id = #{patientId}
+            </if>
+            <if test="serviceName != null and serviceName != ''">
+                AND ms.medical_name LIKE CONCAT('%', #{serviceName}, '%')
+            </if>
+        </where>
+        ORDER BY im.order_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <!-- 查询患者医疗服务总数 -->
+    <select id="selectPatientMedicalServiceCount" resultType="long">
+        SELECT COUNT(*)
+        FROM inpatient_medical im
+        LEFT JOIN medical_service ms ON im.medical_id = ms.id
+        <where>
+            <if test="patientId != null">
+                AND im.patient_id = #{patientId}
+            </if>
+            <if test="serviceName != null and serviceName != ''">
+                AND ms.medical_name LIKE CONCAT('%', #{serviceName}, '%')
+            </if>
+        </where>
+    </select>
+
+    <!-- 根据医疗服务名称搜索医疗服务信息 -->
+    <select id="searchMedicalServices" resultMap="PatientMedicalServiceVOMap">
+        SELECT 
+            ms.id as medical_id,
+            ms.medical_type,
+            ms.medical_number,
+            ms.country_number,
+            ms.medical_name,
+            ms.medical_info,
+            ms.medical_exclude,
+            ms.medical_unit,
+            ms.medical_price
+        FROM medical_service ms
+        <where>
+            <if test="serviceName != null and serviceName != ''">
+                AND ms.medical_name LIKE CONCAT('%', #{serviceName}, '%')
+            </if>
+        </where>
+        ORDER BY ms.medical_name
+        LIMIT 20
+    </select>
+
+    <!-- 新增患者医疗服务 -->
+    <insert id="insertPatientMedicalService" parameterType="com.neusoft.medical.entity.InpatientMedical" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO inpatient_medical (
+            patient_id,
+            order_time,
+            doctor_order,
+            use_method,
+            medical_id,
+            status,
+            created_time,
+            updated_time
+        ) VALUES (
+            #{patientId},
+            #{orderTime},
+            #{doctorOrder},
+            #{useMethod},
+            #{medicalId},
+            #{status},
+            NOW(),
+            NOW()
+        )
+    </insert>
+
+    <!-- 根据ID查询患者医疗服务信息 -->
+    <select id="selectPatientMedicalServiceById" resultMap="PatientMedicalServiceVOMap">
+        SELECT 
+            im.id,
+            im.patient_id,
+            pr.real_name as patient_name,
+            im.medical_id,
+            ms.medical_type,
+            ms.medical_number,
+            ms.country_number,
+            ms.medical_name,
+            ms.medical_info,
+            ms.medical_exclude,
+            ms.medical_unit,
+            ms.medical_price,
+            im.order_time,
+            im.doctor_order,
+            im.use_method,
+            im.status,
+            CASE 
+                WHEN im.status = 1 THEN '正常执行'
+                WHEN im.status = 0 THEN '作废'
+                WHEN im.status = 2 THEN '停止'
+                ELSE '未知'
+            END as status_name,
+            im.created_time,
+            im.updated_time
+        FROM inpatient_medical im
+        LEFT JOIN patient_registration pr ON im.patient_id = pr.id
+        LEFT JOIN medical_service ms ON im.medical_id = ms.id
+        WHERE im.id = #{id}
+    </select>
+
+    <!-- 更新患者医疗服务信息 -->
+    <update id="updatePatientMedicalService" parameterType="com.neusoft.medical.entity.InpatientMedical">
+        UPDATE inpatient_medical
+        SET 
+            patient_id = #{patientId},
+            order_time = #{orderTime},
+            doctor_order = #{doctorOrder},
+            use_method = #{useMethod},
+            medical_id = #{medicalId},
+            status = #{status},
+            updated_time = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <!-- 删除患者医疗服务信息 -->
+    <delete id="deletePatientMedicalService">
+        DELETE FROM inpatient_medical WHERE id = #{id}
+    </delete>
+
+</mapper> 

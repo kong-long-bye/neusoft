@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.neusoft.medical.mapper.medical.PatientDiagnosisMapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="PatientDiagnosisVOMap" type="com.neusoft.medical.vo.medical.PatientDiagnosisVO">
+        <id column="id" property="id"/>
+        <result column="patient_id" property="patientId"/>
+        <result column="patient_name" property="patientName"/>
+        <result column="disease_id" property="diseaseId"/>
+        <result column="disease_code" property="diseaseCode"/>
+        <result column="disease_name" property="diseaseName"/>
+        <result column="disease_icd" property="diseaseICD"/>
+        <result column="disease_category" property="diseaseCategory"/>
+        <result column="order_time" property="orderTime"/>
+        <result column="disease_type" property="diseaseType"/>
+        <result column="disease_type_name" property="diseaseTypeName"/>
+        <result column="created_time" property="createdTime"/>
+        <result column="updated_time" property="updatedTime"/>
+    </resultMap>
+
+    <!-- 分页查询患者疾病诊断信息 -->
+    <select id="selectPatientDiagnosisPage" resultMap="PatientDiagnosisVOMap">
+        SELECT 
+            id.id,
+            id.patient_id,
+            pr.real_name as patient_name,
+            id.disease_id,
+            di.disease_code,
+            di.disease_name,
+            di.diseaseICD as disease_icd,
+            di.disease_category,
+            id.order_time,
+            id.disease_type,
+            CASE 
+                WHEN id.disease_type = 1 THEN '入院诊断'
+                WHEN id.disease_type = 2 THEN '主要诊断'
+                WHEN id.disease_type = 3 THEN '其他诊断'
+                ELSE '未知'
+            END as disease_type_name,
+            id.created_time,
+            id.updated_time
+        FROM inpatient_disease id
+        LEFT JOIN patient_registration pr ON id.patient_id = pr.id
+        LEFT JOIN disease_info di ON id.disease_id = di.id
+        <where>
+            <if test="patientId != null">
+                AND id.patient_id = #{patientId}
+            </if>
+            <if test="diseaseName != null and diseaseName != ''">
+                AND di.disease_name LIKE CONCAT('%', #{diseaseName}, '%')
+            </if>
+        </where>
+        ORDER BY id.order_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <!-- 查询患者疾病诊断总数 -->
+    <select id="selectPatientDiagnosisCount" resultType="long">
+        SELECT COUNT(*)
+        FROM inpatient_disease id
+        LEFT JOIN disease_info di ON id.disease_id = di.id
+        <where>
+            <if test="patientId != null">
+                AND id.patient_id = #{patientId}
+            </if>
+            <if test="diseaseName != null and diseaseName != ''">
+                AND di.disease_name LIKE CONCAT('%', #{diseaseName}, '%')
+            </if>
+        </where>
+    </select>
+
+    <!-- 根据疾病名称搜索疾病信息 -->
+    <select id="searchDiseases" resultMap="PatientDiagnosisVOMap">
+        SELECT 
+            di.id as disease_id,
+            di.disease_code,
+            di.disease_name,
+            di.diseaseICD as disease_icd,
+            di.disease_category
+        FROM disease_info di
+        <where>
+            <if test="diseaseName != null and diseaseName != ''">
+                AND di.disease_name LIKE CONCAT('%', #{diseaseName}, '%')
+            </if>
+        </where>
+        ORDER BY di.disease_name
+        LIMIT 20
+    </select>
+
+    <!-- 新增患者疾病诊断 -->
+    <insert id="insertPatientDiagnosis" parameterType="com.neusoft.medical.entity.InpatientDisease" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO inpatient_disease (
+            patient_id,
+            disease_id,
+            order_time,
+            disease_type,
+            created_time,
+            updated_time
+        ) VALUES (
+            #{patientId},
+            #{diseaseId},
+            #{orderTime},
+            #{diseaseType},
+            NOW(),
+            NOW()
+        )
+    </insert>
+
+    <!-- 根据ID查询患者疾病诊断信息 -->
+    <select id="selectPatientDiagnosisById" resultMap="PatientDiagnosisVOMap">
+        SELECT 
+            id.id,
+            id.patient_id,
+            pr.real_name as patient_name,
+            id.disease_id,
+            di.disease_code,
+            di.disease_name,
+            di.diseaseICD as disease_icd,
+            di.disease_category,
+            id.order_time,
+            id.disease_type,
+            CASE 
+                WHEN id.disease_type = 1 THEN '入院诊断'
+                WHEN id.disease_type = 2 THEN '主要诊断'
+                WHEN id.disease_type = 3 THEN '其他诊断'
+                ELSE '未知'
+            END as disease_type_name,
+            id.created_time,
+            id.updated_time
+        FROM inpatient_disease id
+        LEFT JOIN patient_registration pr ON id.patient_id = pr.id
+        LEFT JOIN disease_info di ON id.disease_id = di.id
+        WHERE id.id = #{id}
+    </select>
+
+    <!-- 更新患者疾病诊断信息 -->
+    <update id="updatePatientDiagnosis" parameterType="com.neusoft.medical.entity.InpatientDisease">
+        UPDATE inpatient_disease
+        SET 
+            patient_id = #{patientId},
+            disease_id = #{diseaseId},
+            order_time = #{orderTime},
+            disease_type = #{diseaseType},
+            updated_time = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <!-- 删除患者疾病诊断信息 -->
+    <delete id="deletePatientDiagnosis">
+        DELETE FROM inpatient_disease WHERE id = #{id}
+    </delete>
+
+</mapper> 
