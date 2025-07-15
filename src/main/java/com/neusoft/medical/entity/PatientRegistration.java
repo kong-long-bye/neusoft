@@ -1,5 +1,6 @@
 package com.neusoft.medical.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import java.time.LocalDate;
@@ -47,9 +48,11 @@ public class PatientRegistration {
     private String registMethod;
 
     @ApiModelProperty(value = "创建时间")
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDateTime createdTime;
 
     @ApiModelProperty(value = "更新时间")
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDateTime updatedTime;
 
     // 构造方法
