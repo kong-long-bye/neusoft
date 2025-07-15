@@ -23,18 +23,18 @@ public class InpatientDisease {
     private Integer diseaseId;
 
     @ApiModelProperty(value = "疾病诊断时间")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDateTime orderTime;
 
     @ApiModelProperty(value = "诊断类型（1、入院诊断，2、主要诊断，3、其他诊断）")
     private Integer diseaseType;
 
     @ApiModelProperty(value = "创建时间")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDateTime createdTime;
 
     @ApiModelProperty(value = "更新时间")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDateTime updatedTime;
 
     // 构造方法
