@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.neusoft.medical.mapper.SysUserMapper">
+
+    <!-- 用户信息结果映射 -->
+    <resultMap id="BaseResultMap" type="com.neusoft.medical.entity.SysUser">
+        <id column="id" jdbcType="INTEGER" property="id"/>
+        <result column="login_name" jdbcType="VARCHAR" property="loginName"/>
+        <result column="user_name" jdbcType="VARCHAR" property="userName"/>
+        <result column="gender" jdbcType="TINYINT" property="gender"/>
+        <result column="password" jdbcType="VARCHAR" property="password"/>
+        <result column="avatar" jdbcType="VARCHAR" property="avatar"/>
+        <result column="mobile" jdbcType="VARCHAR" property="mobile"/>
+        <result column="status" jdbcType="TINYINT" property="status"/>
+        <result column="email" jdbcType="VARCHAR" property="email"/>
+        <result column="deleted" jdbcType="TINYINT" property="deleted"/>
+        <result column="gmt_create" jdbcType="TIMESTAMP" property="gmtCreate"/>
+        <result column="gmt_modified" jdbcType="TIMESTAMP" property="gmtModified"/>
+    </resultMap>
+
+    <!-- 基础字段列表 -->
+    <sql id="Base_Column_List">
+        id, login_name, user_name, gender, password, avatar, mobile, status, email, deleted, gmt_create, gmt_modified
+    </sql>
+
+    <!-- 根据登录用户名查询用户信息 -->
+    <select id="selectByLoginName" parameterType="string" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM sys_user
+        WHERE login_name = #{loginName,jdbcType=VARCHAR}
+        AND deleted = 0
+    </select>
+
+    <!-- 根据登录用户名和密码查询用户信息 -->
+    <select id="selectByLoginNameAndPassword" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM sys_user
+        WHERE login_name = #{loginName,jdbcType=VARCHAR}
+        AND password = #{password,jdbcType=VARCHAR}
+        AND deleted = 0
+    </select>
+
+    <!-- 根据主键查询用户信息 -->
+    <select id="selectByPrimaryKey" parameterType="integer" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM sys_user
+        WHERE id = #{id,jdbcType=INTEGER}
+        AND deleted = 0
+    </select>
+
+</mapper>
