@@ -93,7 +93,13 @@ public class ReimbursementReportServiceImpl implements ReimbursementReportServic
             for (Map<String, Object> data : drugCategoryData) {
                 String categoryName = (String) data.get("category_name");
                 BigDecimal amount = (BigDecimal) data.get("amount");
-                Integer itemCount = ((Long) data.get("item_count")).intValue();
+                Integer itemCount = 0;
+                Object itemCountObj = data.get("item_count");
+                if (itemCountObj instanceof BigDecimal) {
+                    itemCount = ((BigDecimal) itemCountObj).intValue();
+                } else if (itemCountObj instanceof Number) {
+                    itemCount = ((Number) itemCountObj).intValue();
+                }
 
                 // 计算占比
                 BigDecimal percentage = BigDecimal.ZERO;
@@ -132,7 +138,13 @@ public class ReimbursementReportServiceImpl implements ReimbursementReportServic
             for (Map<String, Object> data : expenseTypeData) {
                 String typeName = (String) data.get("expense_type_name");
                 BigDecimal amount = (BigDecimal) data.get("amount");
-                Integer itemCount = ((Long) data.get("item_count")).intValue();
+                Integer itemCount = 0;
+                Object itemCountObj = data.get("item_count");
+                if (itemCountObj instanceof BigDecimal) {
+                    itemCount = ((BigDecimal) itemCountObj).intValue();
+                } else if (itemCountObj instanceof Number) {
+                    itemCount = ((Number) itemCountObj).intValue();
+                }
 
                 // 计算占比
                 BigDecimal percentage = BigDecimal.ZERO;

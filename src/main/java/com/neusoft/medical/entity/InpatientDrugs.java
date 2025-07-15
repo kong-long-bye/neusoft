@@ -1,5 +1,6 @@
 package com.neusoft.medical.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import java.time.LocalDateTime;
@@ -19,9 +20,11 @@ public class InpatientDrugs {
     private Integer patientId;
 
     @ApiModelProperty(value = "起始时间")
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDateTime startTime;
 
     @ApiModelProperty(value = "结束时间")
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDateTime endTime;
 
     @ApiModelProperty(value = "医嘱内容")
@@ -40,9 +43,11 @@ public class InpatientDrugs {
     private Integer status;
 
     @ApiModelProperty(value = "创建时间")
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDateTime createdTime;
 
     @ApiModelProperty(value = "更新时间")
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDateTime updatedTime;
 
     // 构造方法
