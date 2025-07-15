@@ -11,6 +11,11 @@ import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
+import org.springframework.validation.BindingResult;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.NotBlank;
+
 import java.util.List;
 
 /**
@@ -67,8 +72,18 @@ public class PatientDiagnosisController {
     @ApiOperation(value = "新增患者疾病诊断", notes = "新增患者疾病诊断信息")
     @PostMapping
     public Result<String> addPatientDiagnosis(
-            @ApiParam(value = "患者疾病诊断信息", required = true) @RequestBody InpatientDisease inpatientDisease) {
-        
+            @ApiParam(value = "患者疾病诊断信息", required = true) @Valid @RequestBody InpatientDisease inpatientDisease,
+            BindingResult bindingResult) {
+
+        if (bindingResult.hasErrors()) {
+            // 拼接所有校验失败的字段和信息
+            StringBuilder errorMsg = new StringBuilder();
+            bindingResult.getFieldErrors().forEach(error -> {
+                errorMsg.append(error.getField()).append(": ").append(error.getDefaultMessage()).append("; ");
+            });
+            return Result.error(400, "参数校验失败: " + errorMsg.toString());
+        }
+
         try {
             boolean success = patientDiagnosisService.addPatientDiagnosis(inpatientDisease);
             if (success) {
