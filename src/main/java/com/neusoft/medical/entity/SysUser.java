@@ -1,4 +1,5 @@
 package com.neusoft.medical.entity;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import java.time.LocalDateTime;
@@ -42,9 +43,11 @@ public class SysUser {
     private Integer deleted;
 
     @ApiModelProperty(value = "创建时间")
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDateTime gmtCreate;
 
     @ApiModelProperty(value = "更新时间")
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDateTime gmtModified;
 
     // 构造方法
